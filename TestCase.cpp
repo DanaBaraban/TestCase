@@ -2,47 +2,92 @@
 #include <iostream>
 #include <sstream>
 #include <strings.h>
+using namespace std;
 
 class TestCase{
+public:
+ostream *stream ;
+string message;
 
-    void check_equal (int x, int y){
-        if(x != y){
-            printf("Error! Two numbers are not equal");
-        }
-    }
-    void check_equal (struct x, struct y){
-        if(x.num != y.num){
-            printf("Error! Two numbers are not equal");
-        }
-    }
+int pass;
+int fail;
 
-    void check_different (int x, int y){
-        if(x == y){
-            printf("Error! Two numbers are equal");
+	TestCase(string s, ostream &os){
+		stream = &os;
+		message = s; 
+		pass=0;
+		fail=0;
+	}
+	
+	template <class T> TestCase check_equal(T x, T y) { 
+		if(x == y){
+			pass++;
         }
-    }
-
-    void check_different (struct x, const struct y){
-        if(x == y){
-            printf("Error! Two numbers are equal");
+		else { (*stream) << message <<": "<< "Failure in test #"<<  (pass+fail+1) << ": "<< x << " should equal " << y << "!"<<endl;
+		fail++;
+		}
+		return (*this);
+	}
+	
+	template <class T> TestCase check_different(T x, T y) { 
+		if(x != y){
+			pass++;
         }
-    }
-
-    void check_output (const MyStruct& tc, ostream& out){
-        std::stringstream string;
-        string << tc.num; 
-        if (string.str != out.str){
-            printf("Error! Outputs are not the same.");
+		else {(*stream) << message<< ": "<< "Failure in test #"<<  (pass+fail+1) << ": "<< x << " should not equal " << y << "!"<<endl;
+		fail++;
+		}
+		return (*this);
+	}
+	
+	
+	template <class T, class K, typename function> TestCase check_function(function func ,K x, T y) {
+		//T k = func((T)x);
+		if(func(x) == (T)y){
+			pass++;
         }
-    }
-
-    void check_output (const int tc, ostream& out){
-        std::stringstream string;
-        string << tc; 
-        if (string.str != out.str){
-            printf("Error! Outputs are not the same.");
+		else {(*stream) << message<< ": "<< "Failure in test #"<<  (pass+fail+1) << ":  Function should return "<< (T)y << " but returned " << func(x) << "!"<<endl;
+		fail++;
+		}
+		return (*this);
+	}
+	template <class T, class H, class K> TestCase check_function(T (*func)(H) ,K x, T y) {
+		//T k = func((T)x);
+		if(func((H)x) == (T)y){
+			pass++;
         }
-    }
+		else {(*stream) << message<< ": "<< "Failure in test #"<<  (pass+fail+1) << ":  Function should return "<< (T)y << " but returned " << func((H)x) << "!"<<endl;
+		fail++;
+		}
+		return (*this);
+	}
+	
+/*	template <class T, class H, class K> TestCase check_function( const H &func(H) ,K x, T y) {
+		//T k = func((T)x);
+		if(func((H)x) == (T)y){
+			pass++;
+        }
+		else {(*stream) << message<< ": "<< "Failure in test #"<<  (pass+fail+1) << ":  Function should return "<< (T)y << " but returned " << func((H)x) << "!"<<endl;
+		fail++;
+		}
+		return (*this);
+	}*/
 
-    void check_function (int function);
+	template <class T> TestCase check_output(T x, string y) { 
+		stringstream string;
+        string << x;
+        if (string.str().compare(y) == 0){
+            pass++;
+        }
+		else {(*stream) << message<< ": "<< "Failure in test #"<<  (pass+fail+1) << ": string value should be "<< y << " but is " << string.str() << "!"<<endl;
+		fail++;
+		}
+		return (*this);
+	}
+	
+	void print(){
+		(*stream) << message <<": "<< fail <<" failed, "<< pass <<" passed, "<< (pass+fail) <<" total."<<endl<<"---"<<endl;
+	}
+	
+	
+	
 };
